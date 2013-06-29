@@ -2,7 +2,7 @@
 <extension id="webhooks" status="released" xmlns="http://www.getsymphony.com/schemas/extension/1.0">
 	<name>WebHooks</name>
 	<description>A Symphony extension that attaches WebHooks to specific section events for push notifications to a specified URL.</description>
-	<repo type="github">https://github.com/korelogic/webhooks</repo>
+	<repo type="github">https://github.com/bzerangue/webhooks</repo>
 	<types>
 		<type>Other</type>
 	</types>
@@ -19,6 +19,7 @@
 	</authors>
 	<releases>
 		<release version="1.0" date="2013-06-28" min="2.3.x">
+			- Removed dependency on having to install Pager Extension; moved pager library into this extension.
 			- Added Symphony 2.3.x compatibility
 		</release>
 		<release version="0.1" date="2011-09-21" min="2.2.1" max="2.2.5" />

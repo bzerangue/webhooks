@@ -33,18 +33,7 @@
 		 * @return array
 		 *	Extension metadata.
 		 */
-		public function about() {
-			return array(
-				'name' => 'WebHooks',
-				'version' => '0.0.1',
-				'release-date' => '2011-09-01',
-				'author' => array(
-					'name' => 'Wilhelm Murdoch',
-					'website' => 'http://thedrunkenepic.com/',
-					'email' => 'wilhelm.murdoch@gmail.com'
-				)
-			);
-		}
+
 
 		/**
 		 * Installs this extension by adding the appropriate tables to the database.
@@ -65,7 +54,7 @@
 					`callback` varchar(255) DEFAULT NULL,
 					`is_active` tinyint(1) DEFAULT 1,
 				PRIMARY KEY (`id`)
-				) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
+				) ENGINE=InnoDB AUTO_INCREMENT=1 CHARSET=utf8 COLLATE=utf8_unicode_ci;
 			");
 		}
 

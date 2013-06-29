@@ -6,19 +6,12 @@
 	 *
 	 * @link https://github.com/wilhelm-murdoch/pager
 	 */
-	try {
-		if(Symphony::ExtensionManager()->fetchStatus('pager') !== EXTENSION_ENABLED) {
-			throw new Exception;
-		}
-	} catch(Exception $Exception) {
-		throw new SymphonyErrorPage(__('This extension requires the `Pager` extension. You can find it here %s', array('<a href="https://github.com/wilhelm-murdoch/pager">github.com/wilhelm-murdoch/pager</a>')));
-	}
 
 
 	/**
 	 * We need a few standard Symphony libraries as well:
 	 */
-	require_once EXTENSIONS.'/pager/lib/class.pager.php';
+	require_once EXTENSIONS.'/webhooks/lib/class.pager.php';
 	require_once TOOLKIT.'/class.administrationpage.php';
 	require_once TOOLKIT.'/class.sectionmanager.php';
 
@@ -47,13 +40,12 @@
 		 * @access public
 		 * @return NULL
 		 */
-		public function __construct(Administration &$parent) {
-			parent::__construct($parent);
-
-			$SectionManager = new SectionManager($this->_Parent);
+		public function __construct() {
+			parent::__construct();
 
 			$this->sectionNamesArray = array();
-			foreach($SectionManager->fetch(NULL, 'ASC', 'sortorder') as $Section) {
+			
+			foreach(SectionManager::fetch(NULL, 'ASC', 'sortorder') as $Section) {
 				$this->sectionNamesArray[$Section->get('id')] = $Section->get('name');
 			}
 		}
@@ -359,7 +351,7 @@
 		 * @param none
 		 * @return NULL
 		 */
-		public function __viewNew(array $fields = array()) {
+		public function __viewNew() {
 			if(false === empty($_POST) && false == $fields) {
 				$fields = $_POST['fields'];
 			}

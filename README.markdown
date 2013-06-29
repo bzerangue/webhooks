@@ -200,7 +200,8 @@ In lieu of this, I have added the following comprehensive list of new delegates 
 
 ## Note 
 
-1. Removed requirement for Pager Extension and moved the Pager Library into the lib folder of this extension. 
+1. In version 1.0, removed requirement for Pager Extension and moved the Pager Library into the lib folder of this extension. 
+2. v0.1 is dependent on Pager Extension, https://github.com/wilhelm-murdoch/pager
 
 ## Issues
 

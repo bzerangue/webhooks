@@ -1,9 +1,9 @@
 # WebHooks
  
-* Version: v0.1.0
-* Author: Wilhelm Murdoch
-* Build Date: 2011-09-27
-* Requirements: Symphony 2.2.3
+* Version: v1.0
+* Author: Wilhelm Murdoch, Korelogic, Brian Zerangue
+* Build Date: 2012-06-29
+* Requirements: Symphony 2.3.x
 
 ## Purpose
 A simple Symphony extension that allows developers to assocate WebHooks with content publishing events. These hooks are assigned to a content section and then to a specific event delegate for the content associated within this section: PUT, POST, DELETE. If a matching event occurs within an assigned content section, this extension will send a push notification to the specified callback URL with the event type and all information associated with the content entry.
@@ -196,8 +196,12 @@ In lieu of this, I have added the following comprehensive list of new delegates 
 
 ## Requirements
 
-1. I haven't tested this with previous versions of Symphony. But, if I had to hazard a guess, I'd say it works for Symphony 2 and up. Don't hold me to it! :)
-2. This extension has a dependency on the Pager extension, which must be installed before using WebHooks.
+1. This extension now requires Symphony 2.3. 
+
+## Note 
+
+1. In version 1.0, removed requirement for Pager Extension and moved the Pager Library into the lib folder of this extension. 
+2. v0.1 is dependent on Pager Extension, https://github.com/wilhelm-murdoch/pager
 
 ## Issues
 

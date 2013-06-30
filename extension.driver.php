@@ -33,18 +33,7 @@
 		 * @return array
 		 *	Extension metadata.
 		 */
-		public function about() {
-			return array(
-				'name' => 'WebHooks',
-				'version' => '0.0.1',
-				'release-date' => '2011-09-01',
-				'author' => array(
-					'name' => 'Wilhelm Murdoch',
-					'website' => 'http://thedrunkenepic.com/',
-					'email' => 'wilhelm.murdoch@gmail.com'
-				)
-			);
-		}
+
 
 		/**
 		 * Installs this extension by adding the appropriate tables to the database.
@@ -65,7 +54,7 @@
 					`callback` varchar(255) DEFAULT NULL,
 					`is_active` tinyint(1) DEFAULT 1,
 				PRIMARY KEY (`id`)
-				) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
+				) ENGINE=InnoDB AUTO_INCREMENT=1 CHARSET=utf8 COLLATE=utf8_unicode_ci;
 			");
 		}
 
@@ -158,6 +147,8 @@
 			/**
 			 * Determine the proper HTTP method verb based on the given Symphony delegate:
 			 */
+			
+			 
 			switch($context['delegate']) {
 				case 'EntryPostEdit':
 					$verb = 'PUT';
@@ -213,11 +204,10 @@
 			 * $Gateway: an instance of class `Gateway`, Symphony's HTTP request utility `class.gateway.php`
 			 * $Log:     an instance of class `Log`, Symphony's logging utility. We use this to track any issues we might come accross
 			 */
-			if($verb == 'DELETE') {
-				$pageCallback = Administration::instance()->getPageCallback();
-				$section = $this->__getSectionByHandle($pageCallback['context']['section_handle']);
-			} else {
-				$section = current($context['section']->fetchFieldsSchema());
+			$pageCallback = Administration::instance()->getPageCallback();
+			$section = $this->__getSectionByHandle($pageCallback['context']['section_handle']); 
+			 
+			if($verb != 'DELETE') {
 				$entry   = $context['entry']->getData();
 			}
 
@@ -236,7 +226,10 @@
 			 * a `section_id` and `verb` that corresponds with the current entry:
 			 */
 			foreach($webHooks as $webHook) {
+			
 				if($section['id'] == $webHook['section_id'] && $webHook['verb'] == $verb) {
+				
+					
 					/**
 					 * Being the notification process by setting the appropriate request options:
 					 * 
@@ -246,7 +239,10 @@
 					$Gateway->setopt('URL',  $webHook['callback']);
 					$Gateway->setopt('POSTFIELDS', ($verb == 'DELETE' ? json_encode($section) : $this->__compilePayload($context['section'], $context['entry'], $webHook)));
 
-
+						//echo "<pre>";
+						//var_dump($this->__compilePayload($context['section'], $context['entry'], $webHook));
+						//echo "</pre>";
+						//die();
 					/**
 					 * Obviously, we don't want to continue if something goes wrong. So, let's log this error
 					 * and move on to the next active WebHook:
@@ -288,6 +284,7 @@
 						}
 					}
 				}
+				
 			}
 		}
 
@@ -307,6 +304,8 @@
 		private function __compilePayload(Section $Section, Entry $Entry, array $webHook) {
 			$body = array();
 			$data = $Entry->getData();
+			$entry = $Entry->get();
+			
 			foreach($Section->fetchFieldsSchema() as $field) {
 				$field['value'] = $data[$field['id']];
 				$body[] = $field;
@@ -315,6 +314,7 @@
 			$return = array(
 				'verb'     => $webHook['verb'],
 				'callback' => $webHook['callback'],
+				'entry'  =>   json_encode($entry),
 				'body'     => json_encode(array_values($body))
 			);
 

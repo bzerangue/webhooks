@@ -515,7 +515,7 @@
 						__(
 							'WebHook created at %1$s. <a href="%2$s" accesskey="c">Create another?</a> <a href="%3$s" accesskey="a">View all WebHooks</a>',
 							array(
-								DateTimeObj::getTimeAgo(__SYM_TIME_FORMAT__),
+								Widget::Time()->generate(__SYM_TIME_FORMAT__),
 								SYMPHONY_URL . '/extension/webhooks/hooks/new/',
 								SYMPHONY_URL . '/extension/webhooks/hooks/'
 							)

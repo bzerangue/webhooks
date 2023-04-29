@@ -1,8 +1,8 @@
 # WebHooks
  
-* Version: v1.0
+* Version: v1.1
 * Author: Wilhelm Murdoch, Korelogic, Brian Zerangue
-* Build Date: 2012-06-29
+* Build Date: 2023-04-29
 * Requirements: Symphony 2.3.x
 
 ## Purpose

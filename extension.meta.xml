@@ -18,6 +18,12 @@
 		</author>
 	</authors>
 	<releases>
+	  <release version="1.1" date="2023-04-29" min="2.3.x">
+			- Fixed Webhook Edit page
+		</release>
+	  <release version="1.0.1" date="2014-10-03" min="2.3.x">
+			- Added Symphony 2.4.x and up compatibility
+		</release>
 		<release version="1.0" date="2013-06-28" min="2.3.x">
 			- Removed dependency on having to install Pager Extension; moved pager library into this extension.
 			- Added Symphony 2.3.x compatibility

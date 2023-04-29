@@ -1,10 +1,13 @@
 <?php
 	/**
-	 * This extension requires the `pager` extension to be installed and active. This is used
+	 * This extension NO LONGER requires the `pager` extension to be installed and active. This was used
 	 * to generate standardized pagination for some of the management pages. This can be 
 	 * obtained from Github:
 	 *
 	 * @link https://github.com/wilhelm-murdoch/pager
+	 * 
+	 * Now using pager library in this extension
+	 * 
 	 */
 
 
@@ -88,7 +91,8 @@
 					array(__('Section'),      'col'),
 					array(__('Verb'),         'col'),
 					array(__('Active'),       'col'),
-					array(__('Callback URL'), 'col')
+					array(__('Callback URL'), 'col'),
+					array(__('ID'),        'col')
 			);
 
 			$totalWebHooks = array_pop(Symphony::Database()->fetch("SELECT COUNT(1) AS count FROM `sym_extensions_webhooks`"));
@@ -104,7 +108,7 @@
 					`callback`,
 					`is_active` 
 				FROM `sym_extensions_webhooks`
-				ORDER BY `id` DESC '.$Pager->getLimit(true)
+				ORDER BY `id` ASC '.$Pager->getLimit(true)
 			);
 
 			$webHookTableBody = array();
@@ -122,7 +126,8 @@
 						Widget::TableData($this->sectionNamesArray[$webHook['section_id']]),
 						Widget::TableData($webHook['verb']),
 						Widget::TableData((bool) $webHook['is_active'] ? 'Yes' : 'No'),
-						Widget::TableData(Widget::Anchor($webHook['callback'], $webHook['callback']))
+						Widget::TableData(Widget::Anchor($webHook['callback'], $webHook['callback'])),
+						Widget::TableData($webHook['id'])
 					), 
 					'odd'
 				);
@@ -130,15 +135,17 @@
 
 			$webHookTable = Widget::Table(
 				Widget::TableHead($WebHookTableHead),
-				NULL,
+				null,
 				Widget::TableBody($webHookTableBody),
-				'selectable'
+				'selectable',
+				null,
+				array('role' => 'directory', 'aria-labelledby' => 'symphony-subheading', 'data-interactive' => 'data-interactive')
 			);
 
 			$this->Form->appendChild($webHookTable);
 
 			$options = array(
-				array(NULL, false, __('With Selected...')),
+				array(null, false, __('With Selected...')),
 				array('disable', false, __('Disable')),
 				array('enable', false, __('Enable')),
 				array('delete', false, __('Delete'), 'confirm', null, array(
@@ -149,8 +156,12 @@
 			$tableActions = new XMLElement('div');
 			$tableActions->setAttribute('class', 'actions');
 
+			/*
 			$tableActions->appendChild(Widget::Select('with-selected', $options));
 			$tableActions->appendChild(Widget::Input('action[apply]', __('Apply'), 'submit'));
+			*/
+			
+			$tableActions->appendChild(Widget::Apply($options));
 
 			$this->Form->appendChild($tableActions);
 			$this->Form->appendChild($Pager->save());
@@ -236,7 +247,7 @@
 			if(false === isset($this->sectionNamesArray[$fields['section_id']]))
 				$this->_errors['section_id'] = __('`Section` is a required field.');
 
-			if(false === isset($fields['callback']) || false === preg_match($validators['URI'], $fields['callback']) || false == trim($fields['callback']))
+			if(false === isset($fields['callback']) || /*false === preg_match($validators['URI'], $fields['callback']) ||*/ false == trim($fields['callback']))
 				$this->_errors['callback'] = __('`Callback URL` is a required field and must be a valid address.');
 
 			if(empty($this->_errors) && false === isset($fields['id'])) {
@@ -359,6 +370,12 @@
 			$this->setPageType('form');
 			$this->setTitle(__('%1$s &ndash; %2$s', array(__('Symphony'), __('WebHooks'))));
 			$this->appendSubheading(false === isset($fields['id']) ? __('Untitled') : $fields['label']);
+			
+			if(isset($fields['id'])) {
+				$this->insertBreadcrumbs(array(
+					Widget::Anchor(__('Webhooks'), Extension_WebHooks::baseUrl() . '/'),
+				));
+			}
 
 			$fieldset = new XMLElement('fieldset');
 			$fieldset->setAttribute('class', 'settings');
@@ -499,7 +516,7 @@
 						`callback`,
 						`is_active` 
 					FROM `sym_extensions_webhooks`
-					WHERE `id` = '.(int) $this->_context[1]
+					WHERE `id` = ' . (int) $this->_context[1]
 				);
 
 				if(false == $webHook) {
@@ -523,8 +540,9 @@
 						Alert::SUCCESS
 					);
 				}
-
-				return $this->__viewNew($webHook[0]);
+				
+				return $this->__viewNew($_POST['fields'] = $webHook[0]);
+				
 			}
 		}
 	}

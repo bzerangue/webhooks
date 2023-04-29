@@ -363,9 +363,12 @@
 		 * @return NULL
 		 */
 		public function __viewNew() {
-			if(false === empty($_POST) && false == $fields) {
+			
+			$fields = $_POST['fields'] ?? empty($_POST);
+			
+			if(false === empty($_POST) && false == $_POST['fields']) {
 				$fields = $_POST['fields'];
-			}
+			} 
 
 			$this->setPageType('form');
 			$this->setTitle(__('%1$s &ndash; %2$s', array(__('Symphony'), __('WebHooks'))));
@@ -383,7 +386,7 @@
 
 			$label = Widget::Label(__('Label'));
 			$label->appendChild(Widget::Input(
-				'fields[label]', General::sanitize($fields['label'])
+				'fields[label]', General::sanitize($fields['label'] ?? null)
 			));
 
 			if(isset($this->_errors['label']))
@@ -391,7 +394,7 @@
 
 			$callback = Widget::Label(__('Callback URL'));
 			$callback->appendChild(Widget::Input(
-				'fields[callback]', General::sanitize($fields['callback'])
+				'fields[callback]', General::sanitize($fields['callback'] ?? null)
 			));
 
 			if(isset($this->_errors['callback']))
@@ -441,7 +444,7 @@
 			$group->appendChild($verb);
 
 			$isActive = Widget::Label();
-			$isActiveCheckbox = Widget::Input('fields[is_active]', 'yes', 'checkbox', ($fields['is_active'] ? array('checked' => 'checked') : NULL));
+			$isActiveCheckbox = Widget::Input('fields[is_active]', 'yes', 'checkbox', (($fields['is_active'] ?? null) ? array('checked' => 'checked') : NULL));
 
 			$isActive->setValue(__('%1$s Activate this WebHook', array($isActiveCheckbox->generate())));
 

@@ -18,6 +18,9 @@
 		</author>
 	</authors>
 	<releases>
+	  <release version="1.2" date="2023-04-29" min="2.3.x">
+			- Added PHP8 compatibility
+		</release>
 	  <release version="1.1" date="2023-04-29" min="2.3.x">
 			- Fixed Webhook Edit page
 		</release>

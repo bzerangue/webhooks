@@ -171,7 +171,7 @@
 			 * @param Entry $Entry
 			 * @param string $verb
 			 */
-			Symphony::ExtensionManager()->notifyMembers('WebHookInit', '/publish/', array('section' => $Section, 'entry' => $Entry, 'verb' => $verb));
+			Symphony::ExtensionManager()->notifyMembers('WebHookInit', '/publish/', array('section' => $Section ?? null, 'entry' => $Entry ?? null, 'verb' => $verb ?? null));
 
 			/**
 			 * Grab all active WebHooks so we can begin cycling through them;

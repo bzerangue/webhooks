@@ -112,7 +112,11 @@
 			if(false === is_null($this->currentPage))
 				return $this->currentPage;
 
-			$currentPage = isset($_REQUEST[$this->pageKey]) ? (int) $_REQUEST[$this->pageKey] : 1;
+			$currentPage = 1;
+
+			if (isset($_REQUEST[$this->pageKey]) && is_numeric($_REQUEST[$this->pageKey])) {
+				$currentPage = max(1, (int) $_REQUEST[$this->pageKey]);
+			}
 
 			if($currentPage > $this->getTotalPages())
 				return $this->currentPage = $this->getTotalPages();

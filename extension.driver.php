@@ -45,8 +45,8 @@
 		 */
 		public function install() {
 			return Symphony::Database()->import("
-				DROP TABLE IF EXISTS `sym_extensions_webhooks`;
-				CREATE TABLE `sym_extensions_webhooks` (
+				DROP TABLE IF EXISTS `tbl_extensions_webhooks`;
+				CREATE TABLE `tbl_extensions_webhooks` (
 					`id` int(11) unsigned NOT NULL AUTO_INCREMENT,
 					`label` varchar(64) DEFAULT NULL,
 					`section_id` int(11) DEFAULT NULL,
@@ -54,7 +54,7 @@
 					`callback` varchar(255) DEFAULT NULL,
 					`is_active` tinyint(1) DEFAULT 1,
 				PRIMARY KEY (`id`)
-				) ENGINE=InnoDB AUTO_INCREMENT=1 CHARSET=utf8 COLLATE=utf8_unicode_ci;
+				) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 			");
 		}
 
@@ -68,7 +68,7 @@
 		 */
 		public function uninstall() {
 			return Symphony::Database()->import("
-				DROP TABLE IF EXISTS `sym_extensions_webhooks`
+				DROP TABLE IF EXISTS `tbl_extensions_webhooks`
 			");
 		}
 
@@ -184,7 +184,7 @@
 					`verb`,
 					`callback`,
 					`is_active` 
-				FROM `sym_extensions_webhooks`
+				FROM `tbl_extensions_webhooks`
 				WHERE `is_active` = TRUE
 			');
 
@@ -344,7 +344,13 @@
 		 *	Associative array containing the database record of the matching section.
 		 */
 		private function __getSectionByHandle($sectionHandle) {
-			return current(Symphony::Database()->fetch("SELECT `id` FROM `sym_sections` WHERE `handle` = '{$sectionHandle}'"));
+			$id = SectionManager::fetchIDFromHandle($sectionHandle);
+
+			if (!$id) {
+				return false;
+			}
+
+			return array('id' => (int) $id);
 		}
 	}
 

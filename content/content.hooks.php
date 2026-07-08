@@ -78,7 +78,7 @@
 				__('WebHooks'), 
 				Widget::Anchor(
 					__('Create New'), 
-					Extension_Webhooks::baseUrl().'/new/', 
+					Extension_WebHooks::baseURL().'/new/', 
 					__('Create a new webhook'), 
 					'create button', 
 					NULL, 
@@ -95,7 +95,7 @@
 					array(__('ID'),        'col')
 			);
 
-			$totalWebHooks = array_pop(Symphony::Database()->fetch("SELECT COUNT(1) AS count FROM `sym_extensions_webhooks`"));
+			$totalWebHooks = array_pop(Symphony::Database()->fetch("SELECT COUNT(1) AS count FROM `tbl_extensions_webhooks`"));
 
 			$Pager = Pager::factory($totalWebHooks['count'], Symphony::Configuration()->get('pagination_maximum_rows', 'symphony'), 'pg');
 
@@ -107,7 +107,7 @@
 					`verb`,
 					`callback`,
 					`is_active` 
-				FROM `sym_extensions_webhooks`
+				FROM `tbl_extensions_webhooks`
 				ORDER BY `id` ASC '.$Pager->getLimit(true)
 			);
 
@@ -118,7 +118,7 @@
 					)
 				);
 			} else foreach($webHooks as $webHook) {
-				$labelRow = Widget::TableData(Widget::Anchor($webHook['label'], Extension_Webhooks::baseUrl()."/edit/{$webHook['id']}"));
+				$labelRow = Widget::TableData(Widget::Anchor($webHook['label'], Extension_WebHooks::baseURL()."/edit/{$webHook['id']}"));
 				$labelRow->appendChild(Widget::Input('items['.$webHook['id'].']', 'on', 'checkbox'));
 
 				$webHookTableBody[] = Widget::TableRow(array(
@@ -193,7 +193,7 @@
 						 */
 						Symphony::ExtensionManager()->notifyMembers('WebHookPreEnable', '/extension/webhooks/', array('id' => (int) $id));
 
-						Symphony::Database()->update(array('is_active' => true), 'sym_extensions_webhooks', '`id` = '.(int) $id);
+						Symphony::Database()->update(array('is_active' => true), 'tbl_extensions_webhooks', '`id` = '.(int) $id);
 						break;
 					case 'disable':
 						/**
@@ -207,7 +207,7 @@
 						 */
 						Symphony::ExtensionManager()->notifyMembers('WebHookPreDisable', '/extension/webhooks/', array('id' => (int) $id));
 
-						Symphony::Database()->update(array('is_active' => false), 'sym_extensions_webhooks', '`id` = '.(int) $id);
+						Symphony::Database()->update(array('is_active' => false), 'tbl_extensions_webhooks', '`id` = '.(int) $id);
 						break;
 					case 'delete':
 						/**
@@ -221,12 +221,12 @@
 						 */
 						Symphony::ExtensionManager()->notifyMembers('WebHookPreDelete', '/extension/webhooks/', array('id' => (int) $id));
 
-						Symphony::Database()->delete('sym_extensions_webhooks', '`id` = '.(int) $id);
+						Symphony::Database()->delete('tbl_extensions_webhooks', '`id` = '.(int) $id);
 						break;
 				}
 			}
 
-			redirect(Extension_WebHooks::baseUrl());
+			redirect(Extension_WebHooks::baseURL());
 		}
 
 		/**
@@ -253,7 +253,7 @@
 			if(empty($this->_errors) && false === isset($fields['id'])) {
 				$uniqueConstraintCheck = array_pop(Symphony::Database()->fetch("
 					SELECT COUNT(1) AS count 
-					FROM `sym_extensions_webhooks`
+					FROM `tbl_extensions_webhooks`
 					WHERE
 						    `section_id` = ".(int) $fields['section_id']."
 						AND `verb`       = '".trim($fields['verb'])."'
@@ -302,7 +302,7 @@
 						'verb'       => $fields['verb'],
 						'callback'   => General::sanitize($fields['callback']),
 						'is_active'  => isset($fields['is_active']) ? TRUE : FALSE
-					), 'sym_extensions_webhooks', '`id` = '.(int) $fields['id']);
+					), 'tbl_extensions_webhooks', '`id` = '.(int) $fields['id']);
 				} else {
 					/**
 					 * Fires off before a WebHook is created.
@@ -321,7 +321,7 @@
 						'verb'       => $fields['verb'],
 						'callback'   => General::sanitize($fields['callback']),
 						'is_active'  => isset($fields['is_active']) ? TRUE : FALSE
-					), 'sym_extensions_webhooks');
+					), 'tbl_extensions_webhooks');
 
 					/**
 					 * Fires off after a WebHook is created.
@@ -350,7 +350,7 @@
 				return;
 			}
 
-			redirect(Extension_WebHooks::baseUrl().'/edit/'.Symphony::Database()->getInsertID().'/created/');
+			redirect(Extension_WebHooks::baseURL().'/edit/'.Symphony::Database()->getInsertID().'/created/');
 		}
 
 		/**
@@ -364,11 +364,11 @@
 		 */
 		public function __viewNew() {
 			
-			$fields = $_POST['fields'] ?? empty($_POST);
-			
-			if(false === empty($_POST) && false == $_POST['fields']) {
-				$fields = $_POST['fields'];
-			} 
+			$fields = $_POST['fields'] ?? array();
+
+			if (!is_array($fields)) {
+				$fields = array();
+			}
 
 			$this->setPageType('form');
 			$this->setTitle(__('%1$s &ndash; %2$s', array(__('Symphony'), __('WebHooks'))));
@@ -376,7 +376,7 @@
 			
 			if(isset($fields['id'])) {
 				$this->insertBreadcrumbs(array(
-					Widget::Anchor(__('Webhooks'), Extension_WebHooks::baseUrl() . '/'),
+					Widget::Anchor(__('Webhooks'), Extension_WebHooks::baseURL() . '/'),
 				));
 			}
 
@@ -518,7 +518,7 @@
 						`verb`,
 						`callback`,
 						`is_active` 
-					FROM `sym_extensions_webhooks`
+					FROM `tbl_extensions_webhooks`
 					WHERE `id` = ' . (int) $this->_context[1]
 				);
 

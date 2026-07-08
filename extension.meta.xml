@@ -18,6 +18,13 @@
 		</author>
 	</authors>
 	<releases>
+	  <release version="2.0" date="2026-07-08" min="2.85.x">
+			- Sym8 2.85.x and PHP 8.5 compatibility
+			- Fixed form field initialization on create screen
+			- Replaced raw section SQL with SectionManager::fetchIDFromHandle()
+			- Use tbl_ table prefix for database portability
+			- utf8mb4 charset for new installations
+		</release>
 	  <release version="1.2" date="2023-04-29" min="2.3.x">
 			- Added PHP8 compatibility
 		</release>

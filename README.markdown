@@ -1,9 +1,9 @@
 # WebHooks
  
-* Version: v1.2
+* Version: v2.0
 * Author: Wilhelm Murdoch, Korelogic, Brian Zerangue
-* Build Date: 2023-04-29
-* Requirements: Symphony 2.3.x or greater
+* Build Date: 2026-07-08
+* Requirements: Sym8 2.85.x or greater (PHP 8.5 compatible)
 
 ## Purpose
 A simple Symphony extension that allows developers to assocate WebHooks with content publishing events. These hooks are assigned to a content section and then to a specific event delegate for the content associated within this section: PUT, POST, DELETE. If a matching event occurs within an assigned content section, this extension will send a push notification to the specified callback URL with the event type and all information associated with the content entry.
@@ -196,7 +196,7 @@ In lieu of this, I have added the following comprehensive list of new delegates 
 
 ## Requirements
 
-1. This extension now requires Symphony 2.3. or greater
+1. This extension requires Sym8 2.85.x or greater (tested with Sym8 2.85.1 and PHP 8.5)
 
 ## Note 
 

@@ -125,7 +125,7 @@
 				),
 				array(
 					'page' => '/publish/',
-					'delegate' => 'Delete',
+					'delegate' => 'EntryPostDelete',
 					'callback' => '__pushNotification'
 				)
 			);
@@ -143,148 +143,158 @@
 		 * @uses Log
 		 * @uses Section
 		 */
-		public function __pushNotification(array $context) {
-			/**
-			 * Determine the proper HTTP method verb based on the given Symphony delegate:
-			 */
-			
-			 
-			switch($context['delegate']) {
+		public function __pushNotification(array $context)
+		{
+			switch ($context['delegate']) {
 				case 'EntryPostEdit':
 					$verb = 'PUT';
 					break;
-				case 'Delete':
+
+				case 'EntryPostDelete':
 					$verb = 'DELETE';
 					break;
+
 				case 'EntryPostCreate':
 				default:
 					$verb = 'POST';
+					break;
 			}
 
-			/**
-			 * POST, PUT, DELETE action has been intercepted.
-			 *
-			 * @delegate WebHookInit
-			 * @param string $context
-			 * '/publish/'
-			 * @param Section $Section
-			 * @param Entry $Entry
-			 * @param string $verb
-			 */
-			Symphony::ExtensionManager()->notifyMembers('WebHookInit', '/publish/', array('section' => $Section ?? null, 'entry' => $Entry ?? null, 'verb' => $verb ?? null));
-
-			/**
-			 * Grab all active WebHooks so we can begin cycling through them;
-			 */
-			$webHooks = Symphony::Database()->fetch('
+			$webHooks = Symphony::Database()->fetch("
 				SELECT
 					`id`,
 					`label`,
 					`section_id`,
 					`verb`,
 					`callback`,
-					`is_active` 
+					`is_active`
 				FROM `tbl_extensions_webhooks`
 				WHERE `is_active` = TRUE
-			');
+			");
 
-
-			/**
-			 * Obviously, we don't want to go any farther if we don't have any active
-			 * WebHooks to iterate through:
-			 */
-			if(false == count($webHooks))
+			if (empty($webHooks)) {
 				return;
-
-			/**
-			 * Declare a few variables we'll be using throughout the rest of the process:
-			 *
-			 * $section: an instance of class `Section` containing the current entry's associated Symphony section `class.section.php`
-			 * $entry:   an instance of class `Entry` containing the current Symphony entry `class.entry.php`
-			 * $Gateway: an instance of class `Gateway`, Symphony's HTTP request utility `class.gateway.php`
-			 * $Log:     an instance of class `Log`, Symphony's logging utility. We use this to track any issues we might come accross
-			 */
-			$pageCallback = Administration::instance()->getPageCallback();
-			$section = $this->__getSectionByHandle($pageCallback['context']['section_handle']); 
-			 
-			if($verb != 'DELETE') {
-				$entry   = $context['entry']->getData();
 			}
 
-			$Gateway = new Gateway;
+			$pageCallback = Administration::instance()->getPageCallback();
+			$sectionHandle = $pageCallback['context']['section_handle'] ?? null;
 
+			if (!$sectionHandle) {
+				Symphony::Log()->pushToLog(
+					'WebHooks: Unable to determine the current section handle.',
+					E_ERROR,
+					true
+				);
+
+				return;
+			}
+
+			$section = $this->__getSectionByHandle($sectionHandle);
+
+			if (!$section) {
+				return;
+			}
+
+			$Gateway = new Gateway();
 			$Gateway->init();
-			$Gateway->setopt('HTTPHEADER', array('Content-Type:' => 'application/json'));
+
+			$Gateway->setopt($verb, true);
+
+			$Gateway->setopt('HTTPHEADER', array(
+				'Content-Type: application/json',
+				'Accept: application/json'
+			));
+
 			$Gateway->setopt('TIMEOUT', __NOTIFICATION_TIMEOUT);
-			$Gateway->setopt('POST', TRUE);
 
 			$Log = new Log(__NOTIFICATION_LOG);
 
-
-			/**
-			 * Begin iterating through our active WebHooks. Only send push notifications using WebHooks that contain
-			 * a `section_id` and `verb` that corresponds with the current entry:
-			 */
-			foreach($webHooks as $webHook) {
-			
-				if($section['id'] == $webHook['section_id'] && $webHook['verb'] == $verb) {
-				
-					
-					/**
-					 * Being the notification process by setting the appropriate request options:
-					 * 
-					 * URL:        This is the destination of our notification
-					 * POSTFIELDS: This contains the body of our notification: verb: $webHook['verb'], callback: $webHook['callback'], body: JSON-encoded string representing our entry
-					 */
-					$Gateway->setopt('URL',  $webHook['callback']);
-					$Gateway->setopt('POSTFIELDS', ($verb == 'DELETE' ? json_encode($section) : $this->__compilePayload($context['section'], $context['entry'], $webHook)));
-
-						//echo "<pre>";
-						//var_dump($this->__compilePayload($context['section'], $context['entry'], $webHook));
-						//echo "</pre>";
-						//die();
-					/**
-					 * Obviously, we don't want to continue if something goes wrong. So, let's log this error
-					 * and move on to the next active WebHook:
-					 *
-					 * @todo Probably best to use exception handling for this stuff; possibly create a WebHook exception class.
-					 */
-					if(false === $response = $Gateway->exec()) {
-						$Log->pushToLog(
-							sprintf(
-								'Notification Failed[cURL Error]: section: %d, entry: %d, verb: %d, url: %d',
-								$section['id'],
-								($verb == 'DELETE' ? $context['entry_id'][0] : $context['entry']->get('id')),
-								$verb,
-								$webHook['callback']
-							), E_ERROR, true
-						);	
-						continue;
-					} else {
-						/**
-						 * We need to make sure we have a valid response from our URL. At the moment, we consider only responses with the
-						 * HTTP response code of 200 OK.
-						 *
-						 * @todo Allow for more extensive error checking and better HTTP response support.
-						 */
-						$responseInfo = $Gateway->getInfoLast();
-
-						if($responseInfo['http_code'] != 200) {
-							$Log->pushToLog(
-								sprintf(
-									'Notification Failed[Response Code: %s]: section: %d, entry: %d, verb: %s, url: %s',
-									$responseInfo['http_code'],
-									$section['id'],
-									($verb == 'DELETE' ? $context['entry_id'][0] : $context['entry']->get('id')),
-									$verb,
-									$webHook['callback']
-								), E_ERROR, true
-							);
-							continue;
-						}
-					}
+			foreach ($webHooks as $webHook) {
+				if (
+					(int) $section['id'] !== (int) $webHook['section_id']
+					|| $webHook['verb'] !== $verb
+				) {
+					continue;
 				}
-				
+
+				if ($verb === 'DELETE') {
+					$payload = array(
+						'verb' => 'DELETE',
+						'callback' => $webHook['callback'],
+						'section' => array(
+							'id' => (int) $section['id'],
+							'handle' => $pageCallback['context']['section_handle']
+						),
+						'entry_ids' => array_map(
+							'intval',
+							$context['entry_id'] ?? array()
+						)
+					);
+				} else {
+					$payload = $this->__compilePayload(
+						$context['section'],
+						$context['entry'],
+						$webHook
+					);
+				}
+
+				$json = json_encode(
+					$payload,
+					JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
+				);
+
+				if ($json === false) {
+					$Log->pushToLog(
+						sprintf(
+							'Webhook JSON encoding failed: %s',
+							json_last_error_msg()
+						),
+						E_ERROR,
+						true
+					);
+
+					continue;
+				}
+
+				$Gateway->setopt('URL', $webHook['callback']);
+				$Gateway->setopt('POSTFIELDS', $json);
+
+				$response = $Gateway->exec();
+
+				if ($response === false) {
+					$responseInfo = $Gateway->getInfoLast();
+
+					$Log->pushToLog(
+						sprintf(
+							'Webhook request failed: section=%d, verb=%s, url=%s, curl_error=%s',
+							(int) $section['id'],
+							$verb,
+							$webHook['callback'],
+							$responseInfo['curl_error'] ?? 'unknown'
+						),
+						E_ERROR,
+						true
+					);
+
+					continue;
+				}
+
+				$responseInfo = $Gateway->getInfoLast();
+				$statusCode = (int) ($responseInfo['http_code'] ?? 0);
+
+				if ($statusCode < 200 || $statusCode >= 300) {
+					$Log->pushToLog(
+						sprintf(
+							'Webhook returned HTTP %d: section=%d, verb=%s, url=%s',
+							$statusCode,
+							(int) $section['id'],
+							$verb,
+							$webHook['callback']
+						),
+						E_ERROR,
+						true
+					);
+				}
 			}
 		}
 
